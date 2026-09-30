@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sehat — ASHA Home Survey System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="style.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+
+
+
+
+
+</head>
+<body>
+
+<!-- ========== LOGIN ========== -->
+<div id="page-login" class="page active">
+<div class="lc">
+  <div class="ll">
+    <div class="lb">
+      <div class="bi"><svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="12" fill="white" fill-opacity="0.15"/><path d="M24 12v24M12 24h24" stroke="white" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="18" stroke="white" stroke-width="2" fill="none"/></svg></div>
+      <h1>Sehat</h1>
+      <p class="tg">ASHA Home Survey System — Karnataka</p>
+    </div>
+    <div class="li">
+      <h2>ASHA Worker Portal</h2>
+      <p>Home-to-home disease surveillance, polio campaigns, and community health monitoring for ASHA workers in Karnataka.</p>
+      <ul class="fl2">
+        <li><span class="fi">🏠</span><span>Register & map homes on live map</span></li>
+        <li><span class="fi">🦟</span><span>Survey for Dengue, Malaria, Polio & more</span></li>
+        <li><span class="fi">📸</span><span>Capture live photos with GPS proof</span></li>
+        <li><span class="fi">🗺️</span><span>Track coverage with interactive map</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="lr">
+    <div class="lfw">
+      <h2>Sign In</h2>
+      <p class="ls" id="login-subtitle">Enter your ASHA worker credentials</p>
+        <div class="role-switch" aria-label="Login role">
+          <button type="button" id="role-worker" class="role-btn active" onclick="setLoginRole('worker')">👩‍⚕️ ASHA Worker</button>
+          <button type="button" id="role-supervisor" class="role-btn" onclick="setLoginRole('supervisor')">🛡️ Supervisor</button>
+        </div>
+      <form id="login-form">
+        <div class="fg"><label for="wid" id="login-id-label">Worker ID</label><input type="text" id="wid" placeholder="e.g. ASHA-1001" required></div>
+        <div class="fg"><label for="pw">Password</label>
+          <div class="pw"><input type="password" id="pw" placeholder="Enter your password" required><button type="button" class="tp" onclick="togglePw()"><span id="ei">👁</span></button></div>
+        </div>
+        <div class="fr"><label class="cl"><input type="checkbox" id="rm"> Remember me</label><a href="#" class="fl">Forgot password?</a></div>
+        <div id="le" class="em hidden"></div>
+        <button type="submit" class="btn btn-primary btn-block"><span>Sign In</span> <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10h12m0 0l-4-4m4 4l-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </form>
+      <div class="dc" id="worker-demo">
+        <p><strong>ASHA Demo Credentials:</strong></p>
+        <p>ID: <code>ASHA-1001</code> | PW: <code>sehat123</code> (Bengaluru)</p>
+        <p>ID: <code>ASHA-1002</code> | PW: <code>admin</code> (Mysuru)</p>
+        <p>ID: <code>ASHA-1003</code> | PW: <code>sehat456</code> (Hubballi)</p>
+      </div>
+      <div class="dc hidden" id="supervisor-demo">
+        <p><strong>Supervisor Demo Credentials:</strong></p>
+        <p>ID: <code>SUP-1001</code> | PW: <code>super123</code></p>
+        <p>Supervisor can view all homes, surveys, ASHA workers and login activity.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ========== DASHBOARD ========== -->
+<div id="page-d" class="page">
+<aside class="sb" id="sidebar">
+  <div class="sbb">
+    <svg width="32" height="32" viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="12" fill="#1a7a4c"/><path d="M24 12v24M12 24h24" stroke="white" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="18" stroke="white" stroke-width="2" fill="none"/></svg>
+    <span class="bt">Sehat</span>
+  </div>
+  <nav class="sbn">
+    <a href="#" class="ni active" data-v="dash" onclick="sw('dash',this)"><span class="nic">🏠</span><span>Dashboard</span></a>
+    <a href="#" class="ni" data-v="homes" onclick="sw('homes',this)"><span class="nic">🏘️</span><span>Homes</span></a>
+    <a href="#" class="ni" data-v="add-home" onclick="sw('add-home',this)"><span class="nic">➕</span><span>Add Home</span></a>
+    <a href="#" class="ni" data-v="surveys" onclick="sw('surveys',this)"><span class="nic">📋</span><span>Surveys</span></a>
+    <a href="#" class="ni" data-v="new-survey" onclick="sw('new-survey',this)"><span class="nic">🔬</span><span>New Survey</span></a>
+    <a href="#" class="ni" data-v="map" onclick="sw('map',this)"><span class="nic">🗺️</span><span>Live Map</span></a>
+    <a href="#" class="ni" data-v="reports" onclick="sw('reports',this)"><span class="nic">📊</span><span>Reports</span></a>
+  </nav>
+  <div class="sbf">
+    <div class="wi"><div class="wa" id="wa">A</div><div class="wd"><span class="wn" id="wn">Worker</span><span class="wr">ASHA Worker</span></div></div>
+    <button class="blo" onclick="logout()" title="Sign Out"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M7 17H4a1 1 0 01-1-1V4a1 1 0 011-1h3m6 1l3-3m0 0l-3-3m3 3H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  </div>
+  <div style="padding:12px 20px;border-top:1px solid rgba(255,255,255,.1)"><span class="area-badge" style="width:100%;justify-content:center">📍 <span id="worker-area-badge">Loading...</span></span></div>
+</aside>
+<main class="mc">
+  <header class="tb">
+    <button class="mt" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+    <div class="tbs"><input type="text" placeholder="Search homes, patients, surveys..." id="gs" onkeyup="if(event.key==='Enter')doSearch()"></div>
+    <div class="tba"><button class="btn-icon">🔔 <span class="badge">3</span></button><button class="btn-icon">⚙️</button></div>
+  </header>
+
+  <!-- Dashboard Home -->
+  <div id="v-dash" class="v active">
+    <div class="vh"><h1>Dashboard</h1><p>Welcome back, <span id="wn2">Worker</span>! Here's your Karnataka home visit overview.</p></div>
+    <div class="sg">
+      <div class="sc scb"><div class="sci">🏘️</div><div class="sci2"><span class="scv" id="st-h">0</span><span class="scl">Total Homes</span></div></div>
+      <div class="sc scg"><div class="sci">📋</div><div class="sci2"><span class="scv" id="st-s">0</span><span class="scl">Surveys Done</span></div></div>
+      <div class="sc scr"><div class="sci">🦟</div><div class="sci2"><span class="scv" id="st-d">0</span><span class="scl">Disease Cases</span></div></div>
+      <div class="sc scp"><div class="sci">🧑‍⚕️</div><div class="sci2"><span class="scv" id="st-p">0</span><span class="scl">People Surveyed</span></div></div>
+    </div>
+    <div class="sg">
+      <div class="sc sco"><div class="sci">📸</div><div class="sci2"><span class="scv" id="st-ph">0</span><span class="scl">Photos Captured</span></div></div>
+      <div class="sc scc"><div class="sci">💉</div><div class="sci2"><span class="scv" id="st-po">0</span><span class="scl">Polio Drops Given</span></div></div>
+    </div>
+    <div class="dg">
+      <div class="cd">
+        <div class="ch"><h3>Recent Home Visits</h3><a href="#" class="lk" onclick="sw('surveys',q('[data-v=surveys]'))">View All →</a></div>
+        <div id="rsv" class="sl"><p class="es">No visits yet. Start with your first home survey!</p></div>
+      </div>
+      <div class="cd">
+        <div class="ch"><h3>Disease Overview</h3></div>
+        <div id="dov" class="sl"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Homes List -->
+  <div id="v-homes" class="v">
+    <div class="vh"><h1>Registered Homes</h1><button class="btn btn-primary" onclick="sw('add-home',q('[data-v=add-home]'))">➕ Add Home</button></div>
+    <div class="fb">
+      <input type="text" placeholder="Search homes..." id="home-search" oninput="filterHomes()">
+      <select id="home-filter" onchange="filterHomes()"><option value="all">All Areas</option></select>
+    </div>
+    <div id="homes-grid" class="sl" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px"></div>
+    <div id="homes-empty" class="esl hidden"><p>🏘️</p><h3>No Homes Registered</h3><p>Add your first home to start tracking.</p></div>
+  </div>
+
+  <!-- Add Home -->
+  <div id="v-add-home" class="v">
+    <div class="vh"><h1>Register New Home</h1><p>Fill in the details and click on the map to mark the location.</p></div>
+    <form id="home-form" class="sf" onsubmit="submitHome(event)">
+      <div class="fs">
+        <h2 class="st"><span class="sn">1</span>Home Details</h2>
+        <div class="fgr">
+          <div class="fg"><label>Head of Family *</label><input type="text" id="h-name" placeholder="Full name" required></div>
+          <div class="fg"><label>House Number *</label><input type="text" id="h-number" placeholder="e.g. H-123" required></div>
+          <div class="fg"><label>Area / Mohalla *</label><input type="text" id="h-area" placeholder="e.g. JP Nagar" required><small class="area-hint" id="area-hint"></small></div>
+          <div class="fg"><label>Village / City *</label><input type="text" id="h-city" placeholder="e.g. Bengaluru" required></div>
+          <div class="fg"><label>Phone Number</label><input type="tel" id="h-phone" placeholder="+91 XXXXX XXXXX"></div>
+          <div class="fg"><label>Total Family Members *</label><input type="number" id="h-members" min="1" max="30" placeholder="Number of people" required></div>
+        </div>
+      </div>
+      <div class="fs">
+        <h2 class="st"><span class="sn">2</span>Family Members (optional)</h2>
+        <div id="family-members"></div>
+        <button type="button" class="btn btn-secondary" onclick="addFamilyRow()" style="margin-top:12px">➕ Add Member</button>
+      </div>
+      <div class="fs">
+        <h2 class="st"><span class="sn">3</span>Location on Map</h2>
+        <p style="font-size:13px;color:var(--gray-500);margin-bottom:8px">Click on the map to place a marker, or use the button below to detect your current GPS location.</p>
+        <button type="button" class="btn btn-secondary" onclick="useMyLocation()" style="margin-bottom:12px">Use My GPS Location</button>
+        <div id="add-home-map" class="map-container-sm"></div>
+        <div class="fgr" style="margin-top:12px">
+          <div class="fg"><label>Latitude *</label><input type="text" id="h-lat" placeholder="Click map or use GPS" required></div>
+          <div class="fg"><label>Longitude *</label><input type="text" id="h-lng" placeholder="Click map or use GPS" required></div>
+        </div>
+        <div id="loc-status" style="margin-top:8px;padding:10px 14px;border-radius:var(--r);background:var(--gray-100);color:var(--gray-500);font-size:13px;display:none">📍 Location set successfully</div>
+      </div>
+      <div class="fa"><button type="button" class="btn btn-secondary" onclick="document.getElementById('home-form').reset()">Clear</button><button type="submit" class="btn btn-primary">Register Home</button></div>
+    </form>
+  </div>
+
+  <!-- Surveys List -->
+  <div id="v-surveys" class="v">
+    <div class="vh"><h1>Disease Surveys</h1><button class="btn btn-primary" onclick="sw('new-survey',q('[data-v=new-survey]'))">➕ New Survey</button></div>
+    <div class="fb">
+      <select id="sf-disease" onchange="filterSurveys()"><option value="all">All Diseases</option><option value="dengue">🦟 Dengue</option><option value="malaria">🦟 Malaria</option><option value="polio">💉 Polio</option><option value="tb">🫁 TB</option><option value="cholera">💧 Cholera</option><option value="measles">🔴 Measles</option><option value="other">📋 Other</option></select>
+      <select id="sf-status" onchange="filterSurveys()"><option value="all">All Status</option><option value="completed">Completed</option><option value="pending">Follow-up</option></select>
+    </div>
+    <table class="dt"><thead><tr><th>ID</th><th>Home / Person</th><th>Disease</th><th>Date</th><th>Status</th><th>Photos</th><th>Actions</th></tr></thead><tbody id="stb"></tbody></table>
+    <div id="sv-empty" class="esl hidden"><p>📋</p><h3>No Surveys Found</h3><p>Create a new disease survey.</p></div>
+  </div>
+
+  <!-- New Survey -->
+  <div id="v-new-survey" class="v">
+    <div class="vh"><h1>New Disease Survey</h1><p>Record findings from a home visit in Karnataka.</p></div>
+    <form id="survey-form" class="sf" onsubmit="submitSurvey(event)">
+      <div class="fs">
+        <h2 class="st"><span class="sn">1</span>Select Home</h2>
+        <div class="fgr">
+          <div class="fg"><label>Home *</label><select id="sv-home" required><option value="">Select a registered home</option></select></div>
+          <div class="fg"><label>Person Name *</label><input type="text" id="sv-person" placeholder="Person being surveyed" required></div>
+          <div class="fg"><label>Age *</label><input type="number" id="sv-age" min="0" max="120" placeholder="Age" required></div>
+          <div class="fg"><label>Gender *</label><select id="sv-gender" required><option value="">Select</option><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select></div>
+        </div>
+      </div>
+      <div class="fs">
+        <h2 class="st"><span class="sn">2</span>Disease Information</h2>
+        <div class="fgr">
+          <div class="fg"><label>Disease Type *</label><select id="sv-disease" required onchange="updateDiseaseFields()"><option value="">Select Disease</option><option value="dengue">🦟 Dengue Fever</option><option value="malaria">🦟 Malaria</option><option value="polio">💉 Polio</option><option value="tb">🫁 Tuberculosis (TB)</option><option value="cholera">💧 Cholera</option><option value="measles">🔴 Measles</option><option value="other">📋 Other</option></select></div>
+          <div class="fg"><label>Survey Date *</label><input type="date" id="sv-date" required></div>
+          <div class="fg"><label>Symptoms *</label><input type="text" id="sv-symptoms" placeholder="e.g. fever, headache, joint pain" required oninput="renderAIPredictions()"></div>
+        </div>
+        <div class="ai-panel">
+          <div class="ai-panel-title"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2a8 8 0 100 16 8 8 0 000-16z" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="10" r="1" fill="currentColor"/></svg>AI Disease Predictor</div>
+          <div id="ai-predictions"><p style="color:var(--gray-400);font-size:13px;text-align:center;padding:16px">Type symptoms above to get AI disease predictions...</p></div>
+        </div>
+        <div id="dengue-fields" class="fgr" style="margin-top:16px;display:none">
+          <div class="fg"><label>Platelet Count</label><input type="number" id="sv-platelets" placeholder="per μL"></div>
+          <div class="fg"><label>Fever Duration (days)</label><input type="number" id="sv-fever-days" min="0" placeholder="Days"></div>
+          <div class="fg"><label>Bleeding Signs</label><select id="sv-bleeding"><option value="none">None</option><option value="gums">Gums</option><option value="nose">Nose</option><option value="skin">Skin rash</option><option value="severe">Severe</option></select></div>
+        </div>
+        <div id="polio-fields" class="fgr" style="margin-top:16px;display:none">
+          <div class="fg"><label>OPV Dose Given?</label><select id="sv-opv"><option value="yes">Yes</option><option value="no">No</option><option value="refused">Refused</option></select></div>
+          <div class="fg"><label>Dose Number</label><select id="sv-dose-num"><option value="1">1st Dose</option><option value="2">2nd Dose</option><option value="3">3rd Dose</option><option value="bopv">BOPV</option><option value="ipv">IPV</option></select></div>
+          <div class="fg"><label>Finger Mark Applied?</label><select id="sv-finger"><option value="yes">Yes</option><option value="no">No</option></select></div>
+        </div>
+        <div class="fgr" style="margin-top:16px">
+          <div class="fg"><label>Temperature (°F)</label><input type="number" id="sv-temp" step="0.1" min="90" max="110" placeholder="°F"></div>
+          <div class="fg"><label>Weight (kg)</label><input type="number" id="sv-weight" step="0.1" min="0" placeholder="kg"></div>
+          <div class="fg"><label>Severity</label><select id="sv-severity"><option value="mild">Mild</option><option value="moderate">Moderate</option><option value="severe">Severe</option><option value="critical">Critical</option></select></div>
+        </div>
+      </div>
+      <div class="fs">
+        <h2 class="st"><span class="sn">3</span>Health Assessment</h2>
+        <div class="fgr f">
+          <div class="fg"><label>Clinical Findings *</label><textarea id="sv-findings" rows="3" placeholder="Observations, clinical findings, diagnosis" required></textarea></div>
+          <div class="fg"><label>Treatment / Action Taken</label><textarea id="sv-treatment" rows="2" placeholder="Referral, medication given, isolation advised..."></textarea></div>
+          <div class="fg"><label>Follow-up Needed?</label><select id="sv-followup"><option value="no">No</option><option value="yes">Yes</option><option value="urgent">Urgent</option></select></div>
+          <div class="fg"><label>Additional Notes</label><textarea id="sv-notes" rows="2" placeholder="Any other observations"></textarea></div>
+        </div>
+      </div>
+      <div class="fs">
+        <h2 class="st"><span class="sn">4</span>📸 Photo Evidence with GPS Proof</h2>
+        <p style="font-size:13px;color:var(--gray-500);margin-bottom:4px">Capture photos — GPS location is automatically recorded as proof you visited this location.</p>
+        <div class="photo-section" id="photo-section">
+          <div class="photo-card" onclick="document.getElementById('photo-input').click()">
+            <div class="photo-add"><span>📷</span><span>Add Photo</span></div>
+          </div>
+        </div>
+        <input type="file" id="photo-input" accept="image/*" capture="environment" multiple onchange="handlePhotos(event)" style="display:none">
+      </div>
+      <div class="fa"><button type="button" class="btn btn-secondary" onclick="resetSurveyForm()">Clear</button><button type="submit" class="btn btn-primary">Submit Survey</button></div>
+    </form>
+  </div>
+
+  <!-- Map View -->
+  <div id="v-map" class="v">
+    <div class="vh"><h1>🗺️ Live Map — Karnataka Home Coverage</h1><p>Click any home marker to see details. Color shows status. Zoom in to see road names.</p><button class="btn btn-primary" onclick="sw('add-home',q('[data-v=add-home]'))">➕ Add Home</button></div>
+    <div class="fb">
+      <select id="map-disease" onchange="filterMapMarkers()"><option value="all">All Homes</option><option value="dengue">Dengue Cases</option><option value="malaria">Malaria Cases</option><option value="polio">Polio Vaccination</option><option value="tb">TB Cases</option><option value="cholera">Cholera Cases</option><option value="measles">Measles Cases</option></select>
+    </div>
+    <div id="main-map" class="map-container"></div>
+    <div class="dg">
+      <div class="cd"><div class="ch"><h3>Home Details</h3></div><div id="map-home-info"><p class="es">Click a marker on the map to see home details.</p></div></div>
+      <div class="cd"><div class="ch"><h3>Map Legend</h3></div>
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:13px">
+          <div style="display:flex;align-items:center;gap:8px"><svg width="24" height="30" viewBox="0 0 40 52"><path d="M20 0C9 0 0 9 0 20c0 15 20 32 20 32s20-17 20-32C40 9 31 0 20 0z" fill="#1a7a4c" stroke="#fff" stroke-width="2"/><text x="20" y="22" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff" font-family="sans-serif">✓</text></svg><div><strong>Healthy Home</strong><br><small style="color:var(--gray-500)">No disease cases found</small></div></div>
+          <div style="display:flex;align-items:center;gap:8px"><svg width="24" height="30" viewBox="0 0 40 52"><path d="M20 0C9 0 0 9 0 20c0 15 20 32 20 32s20-17 20-32C40 9 31 0 20 0z" fill="#f59e0b" stroke="#fff" stroke-width="2"/><text x="20" y="22" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff" font-family="sans-serif">1</text></svg><div><strong>Disease Detected</strong><br><small style="color:var(--gray-500)">Number = case count</small></div></div>
+          <div style="display:flex;align-items:center;gap:8px"><svg width="24" height="30" viewBox="0 0 40 52"><path d="M20 0C9 0 0 9 0 20c0 15 20 32 20 32s20-17 20-32C40 9 31 0 20 0z" fill="#dc2626" stroke="#fff" stroke-width="2"/><text x="20" y="22" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff" font-family="sans-serif">!</text></svg><div><strong>Urgent / Critical</strong><br><small style="color:var(--gray-500)">Severe or critical cases</small></div></div>
+          <div style="display:flex;align-items:center;gap:8px"><svg width="24" height="30" viewBox="0 0 40 52"><path d="M20 0C9 0 0 9 0 20c0 15 20 32 20 32s20-17 20-32C40 9 31 0 20 0z" fill="#7c3aed" stroke="#fff" stroke-width="2"/><text x="20" y="22" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff" font-family="sans-serif">P</text></svg><div><strong>Polio Campaign</strong><br><small style="color:var(--gray-500)">OPV drops given here</small></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reports -->
+  <div id="v-reports" class="v">
+    <div class="vh"><h1>📊 Reports & Analytics</h1></div>
+    <div class="rg">
+      <div class="cd rc"><h3>🦟 Disease Cases by Type</h3><div><div class="barchart" id="chart-disease"></div></div></div>
+      <div class="cd rc"><h3>🏘️ Homes by Area</h3><div id="chart-area"></div></div>
+      <div class="cd rc"><h3>💉 Polio Vaccination Coverage</h3><div id="chart-polio"></div></div>
+      <div class="cd rc"><h3>📈 Surveys Over Time</h3><div id="chart-time"></div></div>
+    </div>
+  </div>
+</main>
+</div>
+
+
+<!-- ========== SUPERVISOR DASHBOARD ========== -->
+<div id="page-s" class="page">
+  <aside class="sb supervisor-sidebar" id="supervisor-sidebar">
+    <div class="sbb">
+      <div class="sup-logo">🛡️</div>
+      <span class="bt">Sehat</span>
+    </div>
+    <nav class="sbn">
+      <a href="#" class="ni active" data-sv="overview" onclick="ssw('overview',this)">📊 <span>Dashboard</span></a>
+      <a href="#" class="ni" data-sv="homes" onclick="ssw('homes',this)">🏠 <span>Homes</span></a>
+      <a href="#" class="ni" data-sv="surveys" onclick="ssw('surveys',this)">📋 <span>Surveys</span></a>
+      <a href="#" class="ni" data-sv="workers" onclick="ssw('workers',this)">👩‍⚕️ <span>ASHA Workers</span></a>
+      <a href="#" class="ni" data-sv="activity" onclick="ssw('activity',this)">🔐 <span>Login Activity</span></a>
+    </nav>
+    <div class="sbf">
+      <div class="wi"><div class="wa supervisor-avatar" id="s-wa">S</div><div class="wd"><span class="wn" id="s-wn">Supervisor</span><span class="wr">Supervisor</span></div></div>
+      <button class="blo" onclick="logout()" title="Sign Out">↪</button>
+    </div>
+  </aside>
+  <main class="mc supervisor-main">
+    <header class="tb">
+      <button class="mt" onclick="document.getElementById('supervisor-sidebar').classList.toggle('open')">☰</button>
+      <div class="tbt"><strong id="s-title">Supervisor Dashboard</strong><span class="sup-pill">SECURE ACCESS</span></div>
+      <div class="tba"><span class="sup-status">● Online</span></div>
+    </header>
+
+    <div id="sv-overview" class="v active">
+      <div class="vh"><h1>Supervisor Dashboard</h1><p>Monitor community health activity across all ASHA workers.</p></div>
+      <div class="sg">
+        <div class="sc scb"><div class="sci">👩‍⚕️</div><div class="sci2"><span class="scv" id="sup-workers">0</span><span class="scl">ASHA Workers</span></div></div>
+        <div class="sc scg"><div class="sci">🏠</div><div class="sci2"><span class="scv" id="sup-homes">0</span><span class="scl">Registered Homes</span></div></div>
+        <div class="sc sco"><div class="sci">📋</div><div class="sci2"><span class="scv" id="sup-surveys">0</span><span class="scl">Surveys</span></div></div>
+        <div class="sc scr"><div class="sci">🩺</div><div class="sci2"><span class="scv" id="sup-cases">0</span><span class="scl">Disease Cases</span></div></div>
+      </div>
+      <div class="dg">
+        <div class="cd"><div class="ch"><h3>Recent Surveys</h3><a href="#" class="lk" onclick="ssw('surveys',document.querySelector('[data-sv=surveys]'))">View all</a></div><div id="sup-recent-surveys" class="sl"></div></div>
+        <div class="cd"><div class="ch"><h3>Worker Coverage</h3></div><div id="sup-worker-summary" class="sl"></div></div>
+      </div>
+    </div>
+
+    <div id="sv-homes" class="v">
+      <div class="vh"><h1>🏠 All Registered Homes</h1><p>Homes registered by every ASHA worker.</p></div>
+      <div class="fb"><input id="sup-home-search" placeholder="Search home, area or worker" oninput="renderSupervisorHomes()"></div>
+      <div class="sup-table-wrap"><table class="dt"><thead><tr><th>Home</th><th>Head</th><th>Area</th><th>City</th><th>ASHA Worker</th><th>Family</th></tr></thead><tbody id="sup-homes-body"></tbody></table></div>
+    </div>
+
+    <div id="sv-surveys" class="v">
+      <div class="vh"><h1>📋 All Surveys</h1><p>Survey records from all ASHA workers.</p></div>
+      <div class="fb"><input id="sup-survey-search" placeholder="Search person, disease or worker" oninput="renderSupervisorSurveys()"></div>
+      <div class="sup-table-wrap"><table class="dt"><thead><tr><th>Date</th><th>Person</th><th>Disease</th><th>Severity</th><th>ASHA Worker</th><th>Status</th></tr></thead><tbody id="sup-surveys-body"></tbody></table></div>
+    </div>
+
+    <div id="sv-workers" class="v">
+      <div class="vh"><div><h1>👩‍⚕️ ASHA Workers</h1><p>Worker coverage and activity summary.</p></div><button class="btn btn-primary" onclick="openAddWorkerModal()">➕ Add ASHA Worker</button></div>
+      <div class="sup-worker-grid" id="sup-workers-grid"></div>
+    </div>
+
+    <div id="sv-activity" class="v">
+      <div class="vh"><h1>🔐 Login Activity</h1><p>Recent successful logins to the SEHAT system.</p></div>
+      <div class="sup-table-wrap"><table class="dt"><thead><tr><th>User</th><th>Role</th><th>User ID</th><th>Login Time</th><th>Status</th></tr></thead><tbody id="sup-activity-body"></tbody></table></div>
+    </div>
+  </main>
+</div>
+
+<!-- Add ASHA Worker Modal -->
+<div id="add-worker-modal" class="edit-modal hidden" onclick="closeAddWorkerModal(event)">
+  <div class="edit-modal-content" onclick="event.stopPropagation()">
+    <div class="edit-modal-header"><h2>➕ Add ASHA Worker</h2><button class="mcl" onclick="closeAddWorkerModal()">&times;</button></div>
+    <div class="edit-modal-body">
+      <form id="add-worker-form" onsubmit="submitAddWorker(event)">
+        <div class="fgr">
+          <div class="fg"><label>Worker ID *</label><input type="text" id="add-worker-id" placeholder="ASHA-1004" required></div>
+          <div class="fg"><label>Worker Name *</label><input type="text" id="add-worker-name" placeholder="Enter full name" required></div>
+          <div class="fg"><label>Area / District *</label><input type="text" id="add-worker-area" placeholder="e.g. Bengaluru Urban" required></div>
+          <div class="fg"><label>Password *</label><input type="password" id="add-worker-password" placeholder="Minimum 4 characters" minlength="4" required></div>
+        </div>
+        <p style="margin-top:12px;color:var(--gray-500);font-size:12px">The new worker can use this ID and password to sign in to the ASHA Worker portal.</p>
+      </form>
+    </div>
+    <div class="edit-modal-footer"><button class="btn btn-secondary" onclick="closeAddWorkerModal()">Cancel</button><button class="btn btn-primary" onclick="document.getElementById('add-worker-form').requestSubmit()">Add Worker</button></div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="mo" class="mo hidden" onclick="closeMo(event)">
+  <div class="mm" onclick="event.stopPropagation()">
+    <div class="mh"><h2 id="mo-title">Details</h2><button class="mcl" onclick="closeMo()">&times;</button></div>
+    <div class="mb" id="mo-body"></div>
+    <div class="mf"><button class="btn btn-secondary" onclick="closeMo()">Close</button><button class="btn btn-primary hidden" id="mo-edit" onclick="if(curDel&&curDel.type==='home'){closeMo();editHome(curDel.id)}">✏️ Edit</button><button class="btn btn-danger hidden" id="mo-del" onclick="deleteCurrent()">Delete</button></div>
+  </div>
+</div>
+
+<!-- Edit Home Modal -->
+<div id="edit-home-modal" class="edit-modal hidden" onclick="closeEditModal()">
+  <div class="edit-modal-content" onclick="event.stopPropagation()">
+    <div class="edit-modal-header"><h2>✏️ Edit Home Details</h2><button class="mcl" onclick="closeEditModal()">&times;</button></div>
+    <div class="edit-modal-body">
+      <form id="edit-home-form" onsubmit="submitEditHome(event)">
+        <input type="hidden" id="edit-home-id">
+        <div class="fgr" style="margin-bottom:16px">
+          <div class="fg"><label>Head of Family *</label><input type="text" id="edit-h-name" required></div>
+          <div class="fg"><label>House Number *</label><input type="text" id="edit-h-number" required></div>
+          <div class="fg"><label>Area *</label><input type="text" id="edit-h-area" required></div>
+          <div class="fg"><label>City *</label><input type="text" id="edit-h-city" required></div>
+          <div class="fg"><label>Phone</label><input type="tel" id="edit-h-phone"></div>
+          <div class="fg"><label>Family Members *</label><input type="number" id="edit-h-members" min="1" required></div>
+        </div>
+        <div class="dst">Family Members</div>
+        <div id="edit-family-members"></div>
+        <button type="button" class="btn btn-secondary" onclick="addEditFamilyRow()" style="margin-top:12px">➕ Add Member</button>
+        <div class="dst">📍 Location</div>
+        <div class="fgr">
+          <div class="fg"><label>Latitude</label><input type="text" id="edit-h-lat" readonly></div>
+          <div class="fg"><label>Longitude</label><input type="text" id="edit-h-lng" readonly></div>
+        </div>
+      </form>
+    </div>
+    <div class="edit-modal-footer"><button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button><button class="btn btn-primary" onclick="document.getElementById('edit-home-form').dispatchEvent(new Event('submit'))">Save Changes</button></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast hidden"><span id="toast-msg"></span></div>
+
+<script src="app.js"></script>
+</body>
+</html>
